@@ -313,8 +313,17 @@ void custom_initializer() {
   ghistoryBits = 16;
   lhistoryBits = 16;
   pcIndexBits = 10;
+
   uint32_t pc_num = 1 << pcIndexBits;
+
+  local_history = (uint32_t*) malloc(sizeof(uint32_t) * pc_num);
+  memset(local_history, 0, sizeof(uint32_t) * pc_num);
+
+  global_history = 0;
+
   biases = (double*) malloc(sizeof(double) * pc_num);
+
+
   for (uint32_t i = 0; i < pc_num; ++i) {
     biases[i] = 0.0;
   }
