@@ -51,7 +51,9 @@ uint8_t* twoBitsCounters;
 
 
 uint32_t get_index(uint32_t pc) {
-  return globalHistory ^ pc;
+  uint32_t index = globalHistory ^ pc;
+  index = GET_LOWER_K_BITS(index, ghistoryBits);
+  return index;
 }
 
 uint8_t get_counter(uint32_t index) {
