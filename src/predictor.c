@@ -6,6 +6,7 @@
 //  described in the README                               //
 //========================================================//
 #include <stdio.h>
+#include <string.h>
 #include "predictor.h"
 
 //
@@ -103,6 +104,16 @@ void increase_counter(uint32_t index) {
   set_counter(index, new_counter);
 }
 
+void gshare_initializer() {
+  uint32_t counter_arr_size = (1 << ghistoryBits) >> 2;
+  if (counter_arr_size == 0) {
+    counter_arr_size = 1;
+  }
+  twoBitsCounters = (uint32_t*) malloc(sizeof(uint32_t) * counter_arr_size);
+  memset(twoBitsCounters, 0, sizeof(uint32_t) * counter_arr_size);
+  globalHistory = 0;
+}
+
 uint8_t gshare_predictor(uint32_t pc) {
   uint32_t index = get_index(pc);
   uint8_t counter = get_counter(index);
@@ -140,6 +151,15 @@ init_predictor()
   //
   //TODO: Initialize Branch Predictor Data Structures
   //
+  switch (bpType) {
+    case STATIC:
+    case GSHARE:
+      gshare_initializer();
+    case TOURNAMENT:
+    case CUSTOM:
+    default:
+      break;
+  }
 }
 
 // Make a prediction for conditional branch instruction at PC 'pc'
