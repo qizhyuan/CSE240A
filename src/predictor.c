@@ -52,7 +52,7 @@ int verbose;
 
 uint32_t global_history;
 
-// GShare Predictor
+// GShare Predictor: each item represents 4 counters with 8 bits in total
 uint8_t* two_bits_counters;
 
 
@@ -306,7 +306,7 @@ double* biases;
 double lr = 1e-2;
 
 double sigmoid(double x) {
-  return 1.0 / (1.0 + exp(x));
+  return 1.0 / (1.0 + exp(-x));
 }
 
 void custom_initializer() {
@@ -370,7 +370,7 @@ void custom_trainer(uint32_t pc, uint8_t outcome) {
   logits += bias;
   double pred = sigmoid(logits);
   
-  // Update history records
+  // Update history records using gradient descent
   if (outcome == TAKEN) {
     for (uint32_t i = 0; i < 32; ++i) {
         double xi = GET_BIT(feature, i) ? 1.0 : 0.0;
