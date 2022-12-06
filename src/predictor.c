@@ -134,7 +134,7 @@ uint8_t gshare_trainer(uint32_t pc, uint8_t outcome) {
     globalHistory = globalHistory << 1 | 1;
   } else {
     decrease_counter(index);
-    globalHistory = globalHistory >> 1;
+    globalHistory = globalHistory << 1;
   }
 
   globalHistory = GET_LOWER_K_BITS(globalHistory, ghistoryBits);
