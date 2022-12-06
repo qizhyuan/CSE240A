@@ -153,10 +153,14 @@ init_predictor()
   //
   switch (bpType) {
     case STATIC:
+      break;
     case GSHARE:
       gshare_initializer();
+      break;
     case TOURNAMENT:
+      break;
     case CUSTOM:
+      break;
     default:
       break;
   }
@@ -199,12 +203,16 @@ train_predictor(uint32_t pc, uint8_t outcome)
   //
   //TODO: Implement Predictor training
   //
-    switch (bpType) {
+  switch (bpType) {
     case STATIC:
+      break;
     case GSHARE:
       gshare_trainer(pc, outcome);
+      break;
     case TOURNAMENT:
+      break;
     case CUSTOM:
+      break;
     default:
       break;
   }
