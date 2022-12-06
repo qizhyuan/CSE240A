@@ -52,7 +52,7 @@ int verbose;
 
 uint32_t global_history;
 
-// GShare Predictor: each item represents 4 counters with 8 bits in total
+// GShare Predictor: each item contains 4 counters with 8 bits in total
 uint8_t* two_bits_counters;
 
 
@@ -76,6 +76,7 @@ void set_counter(uint32_t index, uint8_t counter) {
   uint32_t item_index = index & 0b11;
   uint8_t item = two_bits_counters[array_index];
   
+  // Extract the (item_index)-th 2-bit counter in item
   item = SET_BIT(item, (item_index << 1), GET_BIT(counter, 0));
   item = SET_BIT(item, ((item_index << 1) + 1), GET_BIT(counter, 1));
 
@@ -118,6 +119,7 @@ void gshare_initializer() {
     counter_arr_size = 1;
   }
   two_bits_counters = (uint8_t*) malloc(sizeof(uint8_t) * counter_arr_size);
+  // initialize each counter as WN
   for (uint16_t i = 0; i < counter_arr_size; ++i) {
     two_bits_counters[i] = 0b01010101;
   }
@@ -221,7 +223,8 @@ void tournament_initializer() {
   two_bits_counters_global = (uint8_t*) malloc(sizeof(uint8_t) * global_size);
   two_bits_counters_local = (uint8_t*) malloc(sizeof(uint8_t) * local_size);
   two_bits_counters_choice = (uint8_t*) malloc(sizeof(uint8_t) * choice_size);
-
+  
+  // initialize each counter as weak negative (i.e., 0b01)
   for (uint16_t i = 0; i < global_size; ++i) {
     two_bits_counters_global[i] = 0b01010101;
   }
@@ -271,11 +274,11 @@ void tournament_trainer(uint32_t pc, uint8_t outcome) {
   uint8_t pred_local = get_counter_by_index(two_bits_counters_local, local_history_of_pc);
   pred_local = (pred_local == WN || pred_local == SN) ? NOTTAKEN : TAKEN;
 
-  // Global is better, so we decrease choice to choose the global strategy
+  // Global is better, so we decrease choice preferring the global strategy
   if (pred_global == outcome && pred_local != outcome) {
     decrease_counter_by_index(two_bits_counters_choice, pc);
   }
-  // Local is better, so we increase choice to choose the global strategy
+  // Local is better, so we increase choice preferring the local strategy
   if (pred_global != outcome && pred_local == outcome) {
     increase_counter_by_index(two_bits_counters_choice, pc);
   }
