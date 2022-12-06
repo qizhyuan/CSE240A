@@ -242,6 +242,7 @@ void tournament_initializer() {
 
 
 uint8_t tournament_predictor(uint32_t pc) {
+  pc = GET_LOWER_K_BITS(pc, pcIndexBits);
   uint8_t choice_of_pc = get_counter_by_index(two_bits_counters_choice, pc);
   uint8_t prediction = SN;
 
@@ -256,6 +257,7 @@ uint8_t tournament_predictor(uint32_t pc) {
 }
 
 void tournament_trainer(uint32_t pc, uint8_t outcome) {
+  pc = GET_LOWER_K_BITS(pc, pcIndexBits);
   uint8_t choice_of_pc = get_counter_by_index(two_bits_counters_choice, pc);
   uint8_t pred_global = get_counter_by_index(two_bits_counters_global, global_history);
   pred_global = (pred_global == WN || pred_global == SN) ? NOTTAKEN : TAKEN;
