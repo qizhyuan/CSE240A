@@ -112,7 +112,7 @@ void gshare_initializer() {
     counter_arr_size = 1;
   }
   twoBitsCounters = (uint8_t*) malloc(sizeof(uint8_t) * counter_arr_size);
-  memset(twoBitsCounters, 0, sizeof(uint8_t) * counter_arr_size);
+  memset(twoBitsCounters, 0b01010101, sizeof(uint8_t) * counter_arr_size);
   globalHistory = 0;
 }
 
