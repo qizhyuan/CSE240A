@@ -180,13 +180,13 @@ void increase_counter_by_index(uint8_t* array, uint32_t index) {
     uint8_t counter = get_counter_by_index(array, index);
     uint8_t new_counter = 0;
     if (counter == SN) {
-      new_counter = SN;
-    } else if (counter == WN) {
-      new_counter = SN;
-    } else if (counter == WT) {
       new_counter = WN;
-    } else {
+    } else if (counter == WN) {
       new_counter = WT;
+    } else if (counter == WT) {
+      new_counter = ST;
+    } else {
+      new_counter = ST;
     }
     set_counter_by_index(array, index, new_counter);
 }
@@ -195,13 +195,13 @@ void decrease_counter_by_index(uint8_t* array, uint32_t index) {
     uint8_t counter = get_counter_by_index(array, index);
     uint8_t new_counter = 0;
     if (counter == SN) {
-      new_counter = WN;
+      new_counter = SN;
     } else if (counter == WN) {
-      new_counter = WT;
+      new_counter = SN;
     } else if (counter == WT) {
-      new_counter = ST;
+      new_counter = WN;
     } else {
-      new_counter = ST;
+      new_counter = WT;
     }
     set_counter_by_index(array, index, new_counter);
 }
@@ -252,8 +252,12 @@ uint8_t tournament_predictor(uint32_t pc) {
       uint32_t local_history_of_pc = local_history[pc];
       prediction = get_counter_by_index(two_bits_counters_local, local_history_of_pc);
   }
-
-  return prediction;
+  
+  if (prediction == SN || prediction == WN) {
+    return NOTTAKEN;
+  } else {
+    return TAKEN;
+  }
 }
 
 void tournament_trainer(uint32_t pc, uint8_t outcome) {
@@ -287,7 +291,7 @@ void tournament_trainer(uint32_t pc, uint8_t outcome) {
     decrease_counter_by_index(two_bits_counters_local, local_history_of_pc);
 
     global_history = (global_history << 1);
-    local_history[pc] = (local_history[pc] << 1);
+    local_history[pc] = (local_history_of_pc << 1);
   }
 
   global_history = GET_LOWER_K_BITS(global_history, ghistoryBits);
