@@ -129,11 +129,11 @@ uint8_t gshare_predictor(uint32_t pc) {
 uint8_t gshare_trainer(uint32_t pc, uint8_t outcome) {
   uint32_t index = get_index(pc);
 
-  if (outcome == NOTTAKEN) {
-    decrease_counter(index);
+  if (outcome == TAKEN) {
+    increase_counter(index);
     globalHistory = globalHistory << 1 | 1;
   } else {
-    increase_counter(index);
+    decrease_counter(index);
     globalHistory = globalHistory >> 1;
   }
 
