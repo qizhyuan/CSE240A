@@ -7,6 +7,7 @@
 //========================================================//
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "predictor.h"
 
 //
@@ -298,6 +299,92 @@ void tournament_trainer(uint32_t pc, uint8_t outcome) {
   local_history[pc] = GET_LOWER_K_BITS(local_history[pc], lhistoryBits);
 }
 
+// Custom Predictor
+double* weights;
+double* biases;
+
+double lr = 1e-2;
+
+double sigmoid(double x) {
+  return 1.0 / (1.0 + exp(x));
+}
+
+void custom_initializer() {
+  ghistoryBits = 16;
+  lhistoryBits = 16;
+  pcIndexBits = 10;
+  uint32_t pc_num = 1 << pcIndexBits;
+  biases = (double*) malloc(sizeof(double) * pc_num);
+  for (uint32_t i = 0; i < pc_num; ++i) {
+    biases[i] = 0.0;
+  }
+
+  uint32_t weight_dim = ghistoryBits + lhistoryBits;
+  weights = (double*) malloc(sizeof(double) * weight_dim);
+  for (uint32_t i = 0; i < weight_dim; ++i) {
+    weights[i] = -1.0 + (2.0 * rand() / RAND_MAX);
+  }
+}
+
+uint8_t custom_predictor(uint32_t pc) {
+  pc = GET_LOWER_K_BITS(pc, pcIndexBits);
+  double bias = biases[pc];
+
+  uint32_t local_history_of_pc = local_history[pc];
+  uint32_t feature = (global_history << 16) | (local_history_of_pc);
+
+  double logits = 0.0;
+  for (uint32_t i = 0; i < 32; ++i) {
+    logits += GET_BIT(feature, i) ? weights[i] : 0.0;
+  }
+
+  logits += bias;
+  
+  if (logits >= 0.) {
+    return TAKEN;
+  } else {
+    return NOTTAKEN;
+  }
+}
+
+void custom_trainer(uint32_t pc, uint8_t outcome) {
+  pc = GET_LOWER_K_BITS(pc, pcIndexBits);
+  double bias = biases[pc];
+  uint32_t local_history_of_pc = local_history[pc];
+  uint32_t feature = (global_history << 16) | (local_history_of_pc);
+
+  double logits = 0.0;
+  for (uint32_t i = 0; i < 32; ++i) {
+    logits += GET_BIT(feature, i) ? weights[i] : 0.0;
+  }
+
+  logits += bias;
+  double pred = sigmoid(logits);
+  
+  // Update history records
+  if (outcome == TAKEN) {
+    for (uint32_t i = 0; i < 32; ++i) {
+        double xi = GET_BIT(feature, i) ? 1.0 : 0.0;
+        weights[i] = weights[i] + lr * (1 - pred) * xi;
+        biases[pc] = weights[i] + lr * (1 - pred);
+    }
+
+    global_history = (global_history << 1) | 1;
+    local_history[pc] = (local_history_of_pc << 1) | 1;
+  } else {
+    for (uint32_t i = 0; i < 32; ++i) {
+        double xi = GET_BIT(feature, i) ? 1.0 : 0.0;
+        weights[i] = weights[i] - lr * pred * xi;
+        biases[pc] = weights[i] - lr * pred;
+    }
+
+    global_history = (global_history << 1);
+    local_history[pc] = (local_history_of_pc << 1);
+  }
+
+  global_history = GET_LOWER_K_BITS(global_history, ghistoryBits);
+  local_history[pc] = GET_LOWER_K_BITS(local_history[pc], lhistoryBits);
+}
 
 
 //------------------------------------//
@@ -322,6 +409,7 @@ init_predictor()
       tournament_initializer();
       break;
     case CUSTOM:
+      custom_initializer();
       break;
     default:
       break;
@@ -348,6 +436,7 @@ make_prediction(uint32_t pc)
     case TOURNAMENT:
       return tournament_predictor(pc);
     case CUSTOM:
+      return custom_predictor(pc);
     default:
       break;
   }
@@ -376,6 +465,7 @@ train_predictor(uint32_t pc, uint8_t outcome)
       tournament_trainer(pc, outcome);
       break;
     case CUSTOM:
+      custom_trainer(pc, outcome);
       break;
     default:
       break;
