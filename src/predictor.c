@@ -37,14 +37,17 @@ int verbose;
 //
 //TODO: Add your own Branch Predictor data structures here
 //
-// Get the bit-th bit of x
-#define GET_BIT(x, bit) ((x >> bit) & 1)
+// Get the k-th bit of x
+#define GET_BIT(x, k) ((x >> k) & 1)
+
+// Set other bits except k-th to zero
+#define GET_BIT_INPLACE(x, k) (x & (1 << k))
 
 // Get the lower k bits of x
 #define GET_LOWER_K_BITS(x, k) (x & ((1 << k) - 1))
 
-// Set the bit-th bit of x into y
-#define SET_BIT(x, bit, y) ((x & ~ (1 << bit)) | (y << bit))
+// Set the k-th bit of x into y
+#define SET_BIT(x, k, y) ((x & ~ (1 << k)) | (y << k))
 
 uint32_t globalHistory;
 uint8_t* twoBitsCounters;
@@ -61,7 +64,7 @@ uint8_t get_counter(uint32_t index) {
   uint32_t item_index = index & 0b11;
   
   uint8_t item = twoBitsCounters[array_index];
-  uint8_t counter = GET_BIT(item, (item_index << 1)) | GET_BIT(item, ((item_index << 1) + 1));
+  uint8_t counter = GET_BIT_INPLACE(item, (item_index << 1)) | GET_BIT_INPLACE(item, ((item_index << 1) + 1));
   return counter;
 }
 
@@ -70,8 +73,8 @@ void set_counter(uint32_t index, uint8_t counter) {
   uint32_t item_index = index & 0b11;
   uint8_t item = twoBitsCounters[array_index];
   
-  item = SET_BIT(item, (item_index << 1), (counter & 0b01));
-  item = SET_BIT(item, ((item_index << 1) + 1), (counter & 0b10));
+  item = SET_BIT(item, (item_index << 1), GET_BIT(counter, 0));
+  item = SET_BIT(item, ((item_index << 1) + 1), GET_BIT(counter, 1));
 
   twoBitsCounters[array_index] = item;
 }
@@ -115,7 +118,7 @@ void gshare_initializer() {
   for (uint16_t i = 0; i < counter_arr_size; ++i) {
     twoBitsCounters[i] = 0b01010101;
   }
-  
+
   globalHistory = 0;
 }
 
@@ -134,7 +137,7 @@ uint8_t gshare_trainer(uint32_t pc, uint8_t outcome) {
 
   if (outcome == TAKEN) {
     increase_counter(index);
-    globalHistory = globalHistory << 1 | 1;
+    globalHistory = (globalHistory << 1) | 1;
   } else {
     decrease_counter(index);
     globalHistory = globalHistory << 1;
