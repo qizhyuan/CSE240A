@@ -61,7 +61,7 @@ uint8_t get_counter(uint32_t index) {
   uint32_t item_index = index & 0b11;
   
   uint8_t item = twoBitsCounters[array_index];
-  uint8_t counter = GET_BIT(item, item_index << 1) | GET_BIT(item, item_index << 1 + 1);
+  uint8_t counter = GET_BIT(item, (item_index << 1)) | GET_BIT(item, ((item_index << 1) + 1));
   return counter;
 }
 
@@ -70,8 +70,8 @@ void set_counter(uint32_t index, uint8_t counter) {
   uint32_t item_index = index & 0b11;
   uint8_t item = twoBitsCounters[array_index];
   
-  item = SET_BIT(item, item_index << 1, counter & 0b01);
-  item = SET_BIT(item, item_index << 1 + 1, counter & 0b10);
+  item = SET_BIT(item, (item_index << 1), (counter & 0b01));
+  item = SET_BIT(item, ((item_index << 1) + 1), (counter & 0b10));
 
   twoBitsCounters[array_index] = item;
 }
